@@ -1,0 +1,736 @@
+```html
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRM Animátor</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#101114;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:920px;margin:auto;padding:18px}
+.card{background:#1d1f23;border-radius:20px;padding:20px;margin-bottom:16px}
+h1{margin:0 0 5px;font-size:30px}
+h2{font-size:20px;margin:0 0 14px}
+p{margin:5px 0 16px;color:#aeb2b8}
+.upload{display:block;border:2px dashed #555;border-radius:16px;padding:26px;text-align:center;cursor:pointer}
+input[type=file]{display:none}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.effect{background:#292c31;color:#fff;border:2px solid transparent;border-radius:14px;padding:15px;text-align:left;cursor:pointer}
+.effect.selected{border-color:#fff}
+.effect b{display:block;font-size:16px}
+.effect span{display:block;color:#aeb2b8;font-size:13px;margin-top:4px}
+.preview{width:100%;aspect-ratio:16/9;border-radius:14px;display:block;background:#ddd;
+background-image:linear-gradient(45deg,#bbb 25%,transparent 25%),linear-gradient(-45deg,#bbb 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#bbb 75%),linear-gradient(-45deg,transparent 75%,#bbb 75%);
+background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0}
+.control{margin-top:16px}
+.control-header{display:flex;justify-content:space-between;margin-bottom:6px}
+.value{color:#aaa}
+input[type=range]{width:100%}
+.presets{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.preset,.mode{border:1px solid #555;background:#292c31;color:#fff;border-radius:9px;padding:8px 11px;cursor:pointer}
+.mode.selected{border-color:#fff}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+.btn{border:0;border-radius:12px;padding:12px 17px;font-weight:700;cursor:pointer;background:#fff;color:#111}
+.btn:disabled{opacity:.5;cursor:default}
+.status{color:#aeb2b8;font-size:14px}
+.note{font-size:13px;color:#888;margin-top:10px}
+@media(max-width:650px){.grid{grid-template-columns:repeat(2,1fr)}h1{font-size:26px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="card">
+<h1>🎬 DRM Animátor</h1>
+<p>Nahraj obrázek a vytvoř jednoduchou animaci pro vysílání.</p>
+<label class="upload">
+<input id="file" type="file" accept="image/png,image/webp,image/jpeg">
+<strong id="uploadText">📤 Klepni sem a vyber obrázek</strong>
+</label>
+</div>
+
+<div class="card">
+<h2>1. Vyber animaci</h2>
+<div class="grid">
+<button class="effect selected" data-e="in"><b>➡️ Přílet</b><span>Zleva na místo</span></button>
+<button class="effect" data-e="inRight"><b>⬅️ Přílet zprava</b><span>Zprava na místo</span></button>
+<button class="effect" data-e="fly"><b>🚀 Průlet</b><span>Přes celou obrazovku</span></button>
+<button class="effect" data-e="spin"><b>🔄 Otočka</b><span>1× otočení na místě</span></button>
+<button class="effect" data-e="pop"><b>💥 Vyskočení</b><span>Objeví se zvětšením</span></button>
+<button class="effect" data-e="glow"><b>✨ Záře</b><span>Objeví se a zmizí</span></button>
+</div>
+</div>
+
+<div class="card">
+<h2>2. Nastavení obrázku</h2>
+
+<div class="control">
+<div class="control-header"><span>Velikost</span><span class="value" id="sizeValue">50 %</span></div>
+<input id="size" type="range" min="5" max="100" value="50">
+</div>
+
+<div class="control">
+<div class="control-header"><span>Vodorovná pozice</span><span class="value" id="xValue">50 %</span></div>
+<input id="posX" type="range" min="0" max="100" value="50">
+</div>
+
+<div class="control">
+<div class="control-header"><span>Svislá pozice</span><span class="value" id="yValue">50 %</span></div>
+<input id="posY" type="range" min="0" max="100" value="50">
+</div>
+
+<div class="presets">
+<button class="preset" data-x="12" data-y="12">↖ Levý horní</button>
+<button class="preset" data-x="88" data-y="12">↗ Pravý horní</button>
+<button class="preset" data-x="12" data-y="88">↙ Levý dolní</button>
+<button class="preset" data-x="88" data-y="88">↘ Pravý dolní</button>
+<button class="preset" data-x="50" data-y="50">● Střed</button>
+</div>
+</div>
+
+<div class="card">
+<h2>3. Rychlost a opakování</h2>
+
+<div class="control">
+<div class="control-header"><span>Délka jednoho průběhu</span><span class="value" id="durationValue">2 s</span></div>
+<input id="duration" type="range" min="0.5" max="5" step="0.5" value="2">
+</div>
+
+<div class="presets">
+<button class="preset durationPreset" data-duration="1">⚡ 1 s</button>
+<button class="preset durationPreset" data-duration="2">▶ 2 s</button>
+<button class="preset durationPreset" data-duration="3">🐢 3 s</button>
+<button class="preset durationPreset" data-duration="5">🐌 5 s</button>
+</div>
+
+<div class="control">
+<div class="control-header"><span>Opakování</span></div>
+<div class="presets">
+<button class="mode selected" data-mode="once">Jednou</button>
+<button class="mode" data-mode="loop">↻ Loop</button>
+<button class="mode" data-mode="bounce">↔ Odrážení</button>
+</div>
+</div>
+
+</div>
+
+<div class="card">
+<h2>4. Náhled</h2>
+<canvas id="c" class="preview" width="1280" height="720"></canvas>
+<div class="controls">
+<button class="btn" id="play">▶ Náhled</button>
+<button class="btn" id="download">⬇️ Vytvořit GIF</button>
+<span class="status" id="status">Nejdřív nahraj obrázek.</span>
+</div>
+<div class="note">Výstup 1280 × 720, průhledné pozadí, 15 snímků/s. U režimu Loop se animace opakuje stále.</div>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+
+<script>
+const W=1280,H=720,FPS=15;
+const canvas=document.getElementById("c"),ctx=canvas.getContext("2d");
+
+let img=null;
+let effect="in";
+let size=50;
+let posX=50;
+let posY=50;
+let duration=2;
+let mode="once";
+let playing=false;
+let stopPreview=false;
+
+const status=document.getElementById("status");
+
+function setStatus(t){
+  status.textContent=t;
+}
+
+function ease(t){
+  return t<.5
+    ? 2*t*t
+    : 1-Math.pow(-2*t+2,2)/2;
+}
+
+
+/* =========================
+   OBRÁZEK
+========================= */
+
+document.getElementById("file").addEventListener("change",e=>{
+  const f=e.target.files[0];
+  if(!f)return;
+
+  const im=new Image();
+
+  im.onload=()=>{
+    img=im;
+    document.getElementById("uploadText").textContent="✅ "+f.name;
+    draw(0);
+    setStatus("Obrázek je připraven.");
+  };
+
+  im.src=URL.createObjectURL(f);
+});
+
+
+/* =========================
+   EFEKTY
+========================= */
+
+document.querySelectorAll(".effect").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll(".effect")
+      .forEach(x=>x.classList.remove("selected"));
+
+    b.classList.add("selected");
+    effect=b.dataset.e;
+
+    if(img)draw(0);
+  });
+});
+
+
+/* =========================
+   VELIKOST / POZICE
+========================= */
+
+document.getElementById("size").addEventListener("input",e=>{
+  size=+e.target.value;
+  document.getElementById("sizeValue").textContent=size+" %";
+
+  if(img)draw(0);
+});
+
+document.getElementById("posX").addEventListener("input",e=>{
+  posX=+e.target.value;
+  document.getElementById("xValue").textContent=posX+" %";
+
+  if(img)draw(0);
+});
+
+document.getElementById("posY").addEventListener("input",e=>{
+  posY=+e.target.value;
+  document.getElementById("yValue").textContent=posY+" %";
+
+  if(img)draw(0);
+});
+
+
+/* =========================
+   PŘEDVOLBY POZICE
+========================= */
+
+document.querySelectorAll(".preset").forEach(b=>{
+  b.addEventListener("click",()=>{
+
+    if(b.dataset.duration){
+      duration=+b.dataset.duration;
+
+      document.getElementById("duration").value=duration;
+      document.getElementById("durationValue").textContent=duration+" s";
+
+      return;
+    }
+
+    if(b.dataset.x){
+      posX=+b.dataset.x;
+      posY=+b.dataset.y;
+
+      document.getElementById("posX").value=posX;
+      document.getElementById("posY").value=posY;
+
+      document.getElementById("xValue").textContent=posX+" %";
+      document.getElementById("yValue").textContent=posY+" %";
+
+      if(img)draw(0);
+    }
+  });
+});
+
+
+/* =========================
+   DÉLKA
+========================= */
+
+document.getElementById("duration").addEventListener("input",e=>{
+  duration=+e.target.value;
+
+  document.getElementById("durationValue").textContent=
+    duration+" s";
+});
+
+document.querySelectorAll(".durationPreset").forEach(b=>{
+  b.addEventListener("click",()=>{
+    duration=+b.dataset.duration;
+
+    document.getElementById("duration").value=duration;
+    document.getElementById("durationValue").textContent=
+      duration+" s";
+  });
+});
+
+
+/* =========================
+   REŽIM
+========================= */
+
+document.querySelectorAll(".mode").forEach(b=>{
+  b.addEventListener("click",()=>{
+    document.querySelectorAll(".mode")
+      .forEach(x=>x.classList.remove("selected"));
+
+    b.classList.add("selected");
+    mode=b.dataset.mode;
+  });
+});
+
+
+/* =========================
+   POČET SNÍMKŮ
+========================= */
+
+function totalFrames(){
+  return Math.max(
+    2,
+    Math.round(duration*FPS)+1
+  );
+}
+
+
+/* =========================
+   VYKRESLENÍ SNÍMKU
+========================= */
+
+function renderFrame(t){
+
+  ctx.clearRect(0,0,W,H);
+
+  if(!img)return;
+
+  t=Math.max(0,Math.min(1,t));
+
+  const e=ease(t);
+
+  const base=Math.min(
+    520/img.width,
+    520/img.height
+  );
+
+  const finalScale=base*(size/50);
+
+  let scale=finalScale;
+  let x=W*posX/100;
+  let y=H*posY/100;
+  let alpha=1;
+  let rotation=0;
+
+
+  /* PŘÍLET ZLEVA */
+
+  if(effect==="in"){
+    x=-300+(W*posX/100+300)*e;
+  }
+
+
+  /* PŘÍLET ZPRAVA */
+
+  if(effect==="inRight"){
+    x=W+300+(W*posX/100-W-300)*e;
+  }
+
+
+  /* PRŮLET */
+
+  if(effect==="fly"){
+    x=-350+(W+700)*t;
+  }
+
+
+  /* OTOČKA */
+
+  if(effect==="spin"){
+    rotation=Math.PI*2*e;
+  }
+
+
+  /* VYSKOČENÍ */
+
+  if(effect==="pop"){
+    scale=finalScale*(.08+.92*e);
+    alpha=Math.min(1,e*3);
+  }
+
+
+  /* ZÁŘE */
+
+  if(effect==="glow"){
+    alpha=Math.sin(Math.PI*t);
+    scale=finalScale*
+      (.92+.08*Math.sin(Math.PI*t));
+  }
+
+
+  ctx.save();
+
+  ctx.translate(x,y);
+  ctx.rotate(rotation);
+  ctx.globalAlpha=alpha;
+
+  ctx.drawImage(
+    img,
+    -img.width*scale/2,
+    -img.height*scale/2,
+    img.width*scale,
+    img.height*scale
+  );
+
+  ctx.restore();
+}
+
+
+function draw(frame){
+  const total=totalFrames();
+
+  renderFrame(
+    frame/(total-1)
+  );
+}
+
+
+/* =========================
+   VYTVOŘENÍ SEKQUENCE
+========================= */
+
+function createSequence(){
+
+  const total=totalFrames();
+
+  /* JEDNOU */
+
+  if(mode==="once"){
+    return [...Array(total).keys()];
+  }
+
+
+  /* LOOP */
+
+  if(mode==="loop"){
+    return [...Array(total).keys()];
+  }
+
+
+  /* ODRÁŽENÍ */
+
+  if(mode==="bounce"){
+
+    const sequence=[...Array(total).keys()];
+
+    /*
+      Dopředu:
+      0 1 2 3 4 5
+
+      Zpět:
+      4 3 2 1
+
+      Výsledkem:
+      0 1 2 3 4 5 4 3 2 1
+    */
+
+    for(let i=total-2;i>0;i--){
+      sequence.push(i);
+    }
+
+    return sequence;
+  }
+
+  return [...Array(total).keys()];
+}
+
+
+/* =========================
+   NÁHLED
+========================= */
+
+document.getElementById("play").addEventListener("click",()=>{
+
+  if(!img){
+    setStatus("Nejdřív nahraj obrázek.");
+    return;
+  }
+
+  if(playing){
+    stopPreview=true;
+    playing=false;
+
+    document.getElementById("play").textContent=
+      "▶ Náhled";
+
+    setStatus("Náhled zastaven.");
+    return;
+  }
+
+  stopPreview=false;
+  playing=true;
+
+  document.getElementById("play").textContent=
+    "⏹ Zastavit";
+
+  const sequence=createSequence();
+
+  let i=0;
+
+  function tick(){
+
+    if(stopPreview){
+      playing=false;
+
+      document.getElementById("play").textContent=
+        "▶ Náhled";
+
+      return;
+    }
+
+    const total=totalFrames();
+    const f=sequence[i];
+
+    renderFrame(
+      f/(total-1)
+    );
+
+    i++;
+
+    /* JEDNOU */
+
+    if(mode==="once"){
+
+      if(i<sequence.length){
+
+        setTimeout(
+          tick,
+          1000/FPS
+        );
+
+      }else{
+
+        playing=false;
+
+        document.getElementById("play").textContent=
+          "▶ Náhled";
+
+        setStatus("Náhled dokončen.");
+      }
+
+      return;
+    }
+
+
+    /* LOOP */
+
+    if(mode==="loop"){
+
+      if(i>=sequence.length){
+        i=0;
+      }
+
+      setTimeout(
+        tick,
+        1000/FPS
+      );
+
+      return;
+    }
+
+
+    /* ODRÁŽENÍ */
+
+    if(mode==="bounce"){
+
+      if(i>=sequence.length){
+        i=0;
+      }
+
+      setTimeout(
+        tick,
+        1000/FPS
+      );
+
+      return;
+    }
+  }
+
+  tick();
+});
+
+
+/* =========================
+   EXPORT GIF
+========================= */
+
+document.getElementById("download").addEventListener("click",async ()=>{
+
+  if(!img){
+    setStatus("Nejdřív nahraj obrázek.");
+    return;
+  }
+
+  if(typeof GIF==="undefined"){
+    setStatus(
+      "Exportér GIF není dostupný. Zkontroluj připojení k internetu."
+    );
+    return;
+  }
+
+  /* Zastavíme případný náhled */
+  stopPreview=true;
+  playing=false;
+
+  document.getElementById("play").textContent="▶ Náhled";
+
+  setStatus("Vytvářím GIF…");
+
+  try {
+
+    /*
+      DŮLEŽITÉ:
+      Worker načteme jako text a vytvoříme
+      z něj vlastní Blob URL.
+
+      Tohle je způsob z původní funkční verze,
+      který necháváme zachovaný.
+    */
+
+    const workerResponse=await fetch(
+      "https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js"
+    );
+
+    if(!workerResponse.ok){
+      throw new Error(
+        "Nepodařilo se načíst gif.worker.js"
+      );
+    }
+
+    const workerCode=await workerResponse.text();
+
+    const workerURL=URL.createObjectURL(
+      new Blob(
+        [workerCode],
+        {type:"application/javascript"}
+      )
+    );
+
+
+    const gif=new GIF({
+
+      workers:2,
+
+      quality:10,
+
+      width:W,
+
+      height:H,
+
+      /*
+        Zachování průhlednosti.
+      */
+      transparent:0x00ff00,
+
+      workerScript:workerURL
+    });
+
+
+    /*
+      Vytvoříme přesně stejnou sekvenci,
+      kterou používá náhled.
+    */
+
+    const sequence=createSequence();
+    const total=totalFrames();
+
+    for(const f of sequence){
+
+      renderFrame(
+        f/(total-1)
+      );
+
+      gif.addFrame(
+        ctx,
+        {
+          copy:true,
+          delay:Math.round(1000/FPS),
+          dispose:2
+        }
+      );
+    }
+
+
+    gif.on("progress",p=>{
+      setStatus(
+        "Vytvářím GIF… "+
+        Math.round(p*100)+
+        " %"
+      );
+    });
+
+
+    gif.on("finished",blob=>{
+
+      const url=URL.createObjectURL(blob);
+
+      const a=document.createElement("a");
+
+      a.href=url;
+
+      a.download="DRM-animace.gif";
+
+      document.body.appendChild(a);
+
+      a.click();
+
+      a.remove();
+
+
+      setTimeout(()=>{
+
+        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(workerURL);
+
+      },5000);
+
+
+      setStatus(
+        "✅ Hotovo – GIF byl vytvořen."
+      );
+    });
+
+
+    gif.on("abort",()=>{
+
+      URL.revokeObjectURL(workerURL);
+
+      setStatus(
+        "Export GIF byl přerušen."
+      );
+    });
+
+
+    gif.render();
+
+  } catch(err) {
+
+    console.error(err);
+
+    setStatus(
+      "GIF se nepodařilo vytvořit. Zkontroluj připojení k internetu."
+    );
+  }
+
+});
+</script>
+</body>
+</html>
+```
