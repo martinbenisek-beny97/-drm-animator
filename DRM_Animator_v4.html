@@ -1,10 +1,9 @@
-
 <!doctype html>
 <html lang="cs">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DRM Animátor</title>
+<title>DRM Animátor v6</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#101114;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -42,7 +41,7 @@ input[type=range]{width:100%}
 <div class="wrap">
 
 <div class="card">
-<h1>🎬 DRM Animátor</h1>
+<h1>🎬 DRM Animátor v6</h1>
 <p>Nahraj obrázek a vytvoř jednoduchou animaci pro vysílání.</p>
 <label class="upload">
 <input id="file" type="file" accept="image/png,image/webp,image/jpeg">
@@ -117,13 +116,13 @@ input[type=range]{width:100%}
 
 <div class="card">
 <h2>4. Náhled</h2>
-<canvas id="c" class="preview" width="1280" height="720"></canvas>
+<canvas id="c" class="preview" width="1920" height="1080"></canvas>
 <div class="controls">
 <button class="btn" id="play">▶ Náhled</button>
 <button class="btn" id="download">⬇️ Vytvořit GIF</button>
 <span class="status" id="status">Nejdřív nahraj obrázek.</span>
 </div>
-<div class="note">Výstup 1280 × 720, průhledné pozadí, 15 snímků/s. U režimu Loop se animace opakuje stále.</div>
+<div class="note">Výstup 1920 × 1080 (Full HD), průhledné pozadí, 15 snímků/s. U režimu Loop se animace opakuje stále.</div>
 </div>
 
 </div>
@@ -131,7 +130,7 @@ input[type=range]{width:100%}
 <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 
 <script>
-const W=1280,H=720,FPS=15;
+const W=1920,H=1080,FPS=15;
 const canvas=document.getElementById("c"),ctx=canvas.getContext("2d");
 
 let img=null;
@@ -635,9 +634,15 @@ document.getElementById("download").addEventListener("click",async ()=>{
       height:H,
 
       /*
-        Zachování průhlednosti.
+        Canvas se před každým snímkem čistí pomocí clearRect(),
+        takže průhledné pixely mají RGB hodnotu 0,0,0.
+        GIF.js proto musí jako klíč průhlednosti použít černou,
+        nikoli zelenou (ta se v obraze vůbec nevyskytuje).
       */
-      transparent:0x00ff00,
+      transparent:0x000000,
+
+      // JEDNOU: bez opakovací smyčky. LOOP a ODRÁŽENÍ: nekonečně.
+      repeat:mode === "once" ? -1 : 0,
 
       workerScript:workerURL
     });
